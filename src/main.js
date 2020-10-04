@@ -8,6 +8,7 @@ import path from "path";
 import { projectInstall } from "pkg-install";
 import license from "spdx-license-list/licenses/MIT";
 import { promisify } from "util";
+import axios from "axios";
 
 const access = promisify(fs.access);
 const copy = promisify(ncp);
@@ -37,6 +38,14 @@ async function createLicense(options) {
     .replace("<year>", new Date().getFullYear())
     .replace("<copyright holders>", `${options.name} (${options.email})`);
   return writeFile(targetPath, licenseContent, "utf8");
+}
+
+async function createJSONFiles(options) {
+  const targetPath = path.join(options.targetDirectory, "TRANSLATIONS");
+  let res = await axios.get("https://jsonplaceholder.typicode.com/todos/1");
+  let content = JSON.stringify(res.data);
+
+  return writeFile(targetPath, content, "utf8");
 }
 
 async function initGit(options) {
@@ -84,6 +93,10 @@ export async function createProject(options) {
       {
         title: "Create License",
         task: () => createLicense(options),
+      },
+      {
+        title: "Create TRANSLATION FILES",
+        task: () => createJSONFiles(options),
       },
       {
         title: "Initialize git",
